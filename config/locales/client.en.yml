@@ -1,0 +1,10 @@
+en:
+  js:
+    composer:
+      tip:
+        no_similar_titles: "<i class='fa fa-check'></i> No topics have a similar title."
+        similar_titles_top_plural: "Your title is similar to these titles."
+        similar_titles_top_singular: "Your title is similar to this title."
+        similar_titles_bottom_plural: "Consider posting in these topics before creating your own."
+        similar_titles_bottom_singular: "Consider posting in this topic before creating your own."
+        identical_title: "<i class='fa fa-times'></i> Your title is identical to an existing title."
