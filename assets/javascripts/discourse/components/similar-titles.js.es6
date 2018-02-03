@@ -46,6 +46,7 @@ export default MountWidget.extend({
 
     if (requireCategory && !categoryId) return;
 
+    this.set('searching', true);
     searchSimilarTitles({
       title,
       category_id: categoryId,
@@ -54,6 +55,7 @@ export default MountWidget.extend({
       topics.clear();
       topics.pushObjects(result);
       this.sendAction('afterTitleSearch', result);
+      this.set('searching', false);
     });
   },
 });
