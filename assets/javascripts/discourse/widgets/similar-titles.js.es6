@@ -17,6 +17,10 @@ export default createWidget('similar-titles', {
       });
     };
 
+    if (attrs.translatedNone) {
+      return h('li', [attrs.translatedNone]);
+    }
+
     if (attrs.none) {
       return h('li', I18n.t(attrs.none));
     }

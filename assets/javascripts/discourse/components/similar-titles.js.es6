@@ -20,11 +20,15 @@ export default MountWidget.extend({
     if (!showResults) return {};
 
     const topics = this.get('topics');
+    let args = { topics };
+
     const none = this.get('none');
-    return {
-      topics,
-      none
-    };
+    if (none) args['none'] = none;
+
+    const translatedNone = this.get('translatedNone');
+    if (translatedNone) args['translatedNone'] = translatedNone;
+
+    return args;
   },
 
   @on('init')
