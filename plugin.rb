@@ -61,7 +61,7 @@ after_initialize do
   Topic.class_eval do
     def self.similar_title_to(title, categoryId, user = nil)
       filter_words = Search.prepare_data(title);
-      ts_query = Search.ts_query(filter_words, nil, "|")
+      ts_query = Search.ts_query(term: filter_words, joiner: "|")
 
       candidates = Topic.visible
         .secured(Guardian.new(user))
