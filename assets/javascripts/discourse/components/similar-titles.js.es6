@@ -9,6 +9,7 @@ export default MountWidget.extend({
   topics: Ember.A(),
   title: '',
   showResults: true,
+  priorSearch: null,
 
   @observes('topics.[]', 'showResults')
   _rerender() {
@@ -31,13 +32,14 @@ export default MountWidget.extend({
     return args;
   },
 
-  @on('init')
   @observes('title')
   runSearch() {
     Ember.run.debounce(this, this.search, 300);
   },
 
   search() {
+    if (this._state === 'destroying') return;
+
     const title = this.get('title');
     const allowBlankSearch = this.get('allowBlankSearch');
 
@@ -51,11 +53,14 @@ export default MountWidget.extend({
     if (requireCategory && !categoryId) return;
 
     this.set('searching', true);
+
     searchSimilarTitles({
       title,
       category_id: categoryId,
       no_definitions: noDefinitions
     }).then(result => {
+      if (this._state === 'destroying') return;
+
       topics.clear();
       topics.pushObjects(result);
       this.sendAction('afterTitleSearch', result);
