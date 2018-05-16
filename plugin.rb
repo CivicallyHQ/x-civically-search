@@ -33,20 +33,19 @@ after_initialize do
   require_dependency "application_controller"
   class SearchExtension::SearchController < ::ApplicationController
     def similar_title
-      params.permit(:title, :category_id, :no_definitions)
-
-      title = params[:title]
-      category_id = params[:category_id]
+      title = title_params[:title]
+      category_id = title_params[:category_id]
 
       if title.length > 3
-        topics = Topic.similar_title_to(title, category_id, current_user).to_a
+        similarity = title_params[:similarity]
+        topics = Topic.similar_title_to(title, category_id, similarity, current_user).to_a
       else
         opts = {
           order: 'created',
           category: category_id
         }
 
-        if params[:no_definitions]
+        if title_params[:no_definitions]
           opts[:no_definitions] = true
         end
 
@@ -55,11 +54,16 @@ after_initialize do
 
       render_serialized(topics, SearchExtension::SimilarSerializer, compose_title: params[:title])
     end
+
+    def title_params
+      params.permit(:title, :category_id, :no_definitions, :similarity)
+    end
   end
 
   require_dependency 'search'
-  Topic.class_eval do
-    def self.similar_title_to(title, categoryId, user = nil)
+  require_dependency 'topic'
+  class ::Topic
+    def self.similar_title_to(title, categoryId, similarity = nil, user = nil)
       filter_words = Search.prepare_data(title);
       ts_query = Search.ts_query(term: filter_words, joiner: "|")
 
@@ -84,11 +88,13 @@ after_initialize do
 
       return [] unless candidate_ids.present?
 
+      similarity = similarity.present? ? similarity.to_i : SiteSetting.title_search_similarity.to_i
+
       similar = Topic.select(sanitize_sql_array(["topics.*, similarity(topics.title, :title) AS similarity, p.cooked as blurb", title: title]))
         .joins("JOIN posts AS p ON p.topic_id = topics.id AND p.post_number = 1")
         .limit(SiteSetting.max_similar_results)
         .where("topics.id IN (?)", candidate_ids)
-        .where("similarity(topics.title, :title) > 0.2", title: title)
+        .where("similarity(topics.title, :title) > :similarity", title: title, similarity: similarity)
         .order('similarity desc')
       similar
     end

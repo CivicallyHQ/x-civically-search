@@ -1,0 +1,3 @@
+plugins:
+  title_search_similarity:
+    default: 0.2

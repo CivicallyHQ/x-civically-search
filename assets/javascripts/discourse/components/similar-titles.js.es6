@@ -32,6 +32,7 @@ export default MountWidget.extend({
     return args;
   },
 
+  @on('init')
   @observes('title')
   runSearch() {
     Ember.run.debounce(this, this.search, 300);
@@ -52,18 +53,26 @@ export default MountWidget.extend({
 
     if (requireCategory && !categoryId) return;
 
-    this.set('searching', true);
-
-    searchSimilarTitles({
+    let params = {
       title,
       category_id: categoryId,
       no_definitions: noDefinitions
-    }).then(result => {
+    }
+
+    const similarity = this.get('similarity');
+    if (similarity) {
+      params['similarity'] = similarity;
+    }
+
+    this.set('searching', true);
+
+    searchSimilarTitles(params).then(result => {
       if (this._state === 'destroying') return;
 
       topics.clear();
       topics.pushObjects(result);
       this.sendAction('afterTitleSearch', result);
+    }).finally(() => {
       this.set('searching', false);
     });
   },
