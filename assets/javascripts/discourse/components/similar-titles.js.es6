@@ -64,13 +64,22 @@ export default MountWidget.extend({
       params['similarity'] = similarity;
     }
 
+    const subtype = this.get('subtype');
+    if (subtype) {
+      params['subtype'] = subtype;
+    }
+
     this.set('searching', true);
 
     searchSimilarTitles(params).then(result => {
       if (this._state === 'destroying') return;
 
       topics.clear();
-      topics.pushObjects(result);
+
+      if (result.length) {
+        topics.pushObjects(result);
+      }
+
       this.sendAction('afterTitleSearch', result);
     }).finally(() => {
       this.set('searching', false);
