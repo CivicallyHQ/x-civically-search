@@ -3,3 +3,5 @@ en:
     search:
       title: "search posts, users, or places"
       full_page_title: "search posts"
+      similar: "similar titles"
+      identical: "identical title"

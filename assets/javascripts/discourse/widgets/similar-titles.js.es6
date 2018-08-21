@@ -2,19 +2,35 @@ import { createWidget } from 'discourse/widgets/widget';
 import { h } from 'virtual-dom';
 
 export default createWidget('similar-titles', {
-  tagName: 'div.similar-titles-widget',
+  tagName: 'ul.similar-titles-widget',
 
   html(attrs) {
     if (attrs.topics && attrs.topics.length) {
-      return attrs.topics.map(t => {
+      let identical = false;
+
+      let html = attrs.topics.map(t => {
         let contents = [ this.attach('similar-title-link', {
           url: t.url,
           title: t.title,
           identical: t.identical
         })];
 
+        if (t.identical) identical = true;
+
         return h('li', contents);
       });
+
+      if (attrs.includeGutter) {
+        let gutter = [];
+        gutter.push(h('span', I18n.t(`search.${identical ? 'identical' : 'similar'}`)));
+        gutter.push(this.attach('link', {
+          action: 'close',
+          icon: 'times',
+        }));
+        html.push(h('div.gutter', gutter));
+      }
+
+      return html;
     };
 
     if (attrs.translatedNone) {
@@ -26,5 +42,9 @@ export default createWidget('similar-titles', {
     }
 
     return '';
+  },
+
+  close() {
+    this._sendComponentAction('close');
   }
 });

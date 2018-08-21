@@ -3,7 +3,7 @@ import { observes, on } from 'ember-addons/ember-computed-decorators';
 import { searchSimilarTitles } from '../lib/search-utilities';
 
 export default MountWidget.extend({
-  tagName: 'ul',
+  tagName: 'div',
   classNameBindings: [":similar-titles"],
   widget: 'similar-titles',
   topics: Ember.A(),
@@ -11,8 +11,19 @@ export default MountWidget.extend({
   showResults: true,
   priorSearch: null,
 
+  didInsertElement() {
+    this._super();
+    this.appEvents.on("similar-titles:reset-topics", this, this.resetTopics);
+  },
+
+  resetTopics() {
+    if (this._state !== 'destroying') {
+      this.set('topics', Ember.A());
+    }
+  },
+
   @observes('topics.[]', 'showResults')
-  _rerender() {
+  resultsChanged() {
     this.queueRerender();
   },
 
@@ -28,6 +39,9 @@ export default MountWidget.extend({
 
     const translatedNone = this.get('translatedNone');
     if (translatedNone) args['translatedNone'] = translatedNone;
+
+    const includeGutter = this.get('includeGutter');
+    if (includeGutter) args['includeGutter'] = includeGutter;
 
     return args;
   },
@@ -46,6 +60,9 @@ export default MountWidget.extend({
 
     if (!allowBlankSearch && title.length < 3) return;
 
+    const searchDisabled = this.get('searchDisabled');
+    if (searchDisabled) return;
+
     const requireCategory = this.get('requireCategory');
     const categoryId = this.get('categoryId') || '';
     const topics = this.get('topics');
@@ -57,7 +74,7 @@ export default MountWidget.extend({
       title,
       category_id: categoryId,
       no_definitions: noDefinitions
-    }
+    };
 
     const similarity = this.get('similarity');
     if (similarity) {
@@ -69,7 +86,7 @@ export default MountWidget.extend({
       params['subtype'] = subtype;
     }
 
-    this.set('searching', true);
+    this.sendAction('searching', true);
 
     searchSimilarTitles(params).then(result => {
       if (this._state === 'destroying') return;
@@ -82,7 +99,11 @@ export default MountWidget.extend({
 
       this.sendAction('afterTitleSearch', result);
     }).finally(() => {
-      this.set('searching', false);
+      this.sendAction('searching', false);
     });
   },
+
+  close() {
+    this.set('showResults', false);
+  }
 });
