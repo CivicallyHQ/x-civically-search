@@ -2,14 +2,16 @@ import { createWidget } from 'discourse/widgets/widget';
 import { h } from 'virtual-dom';
 
 export default createWidget('similar-titles', {
-  tagName: 'ul.similar-titles-widget',
+  tagName: 'div.similar-titles-widget',
 
   html(attrs) {
+    let contents = [];
+
     if (attrs.topics && attrs.topics.length) {
       let identical = false;
 
-      let html = attrs.topics.map(t => {
-        let contents = [ this.attach('similar-title-link', {
+      contents = attrs.topics.map(t => {
+        let linkContents = [ this.attach('similar-title-link', {
           url: t.url,
           title: t.title,
           identical: t.identical
@@ -17,7 +19,7 @@ export default createWidget('similar-titles', {
 
         if (t.identical) identical = true;
 
-        return h('li', contents);
+        return h('li', linkContents);
       });
 
       if (attrs.includeGutter) {
@@ -27,21 +29,24 @@ export default createWidget('similar-titles', {
           action: 'close',
           icon: 'times',
         }));
-        html.push(h('div.gutter', gutter));
-      }
 
-      return html;
+        contents.push(h('div.gutter', gutter));
+      }
     };
 
     if (attrs.translatedNone) {
-      return h('li', [attrs.translatedNone]);
+      contents.push(h('li', [attrs.translatedNone]));
     }
 
     if (attrs.none) {
-      return h('li', I18n.t(attrs.none));
+      contents.push(h('li', I18n.t(attrs.none)));
     }
 
-    return '';
+    if (contents.length) {
+      return h('ul', contents);
+    } else {
+      return '';
+    }
   },
 
   close() {
